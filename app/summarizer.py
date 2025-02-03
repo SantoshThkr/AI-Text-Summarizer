@@ -1,15 +1,10 @@
-import httpx
-
-from app import config
+from app.ai_client import generate
 
 
 async def summarize_text(text: str, length: str) -> str:
-    prompt = f"Summarize the following text. Summary length: {length}.\n\n{text}"
-    async with httpx.AsyncClient(
-        base_url=config.OLLAMA_BASE_URL, timeout=config.OLLAMA_TIMEOUT_SECONDS
-    ) as client:
-        response = await client.post(
-            "/api/generate",
-            json={"model": config.OLLAMA_MODEL, "prompt": prompt, "stream": False},
-        )
-    return response.json()["response"].strip()
+    messages = [
+        {"role": "system", "content": "You are a text summarization assistant."},
+        {"role": "user", "content": f"Summarize this text ({length}):\n\n{text}"},
+    ]
+    summary = await generate(messages)
+    return summary.strip()
